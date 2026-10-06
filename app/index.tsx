@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Genre = "Semua" | "RPG" | "Action" | "Sandbox" | "Adventure";
-
+//test clone
 type Game = {
   title: string;
   developer: string;
