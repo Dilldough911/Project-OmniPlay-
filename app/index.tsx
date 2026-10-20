@@ -11,7 +11,21 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Genre = "Semua" | "RPG" | "Action" | "Sandbox" | "Adventure";
+type Genre =
+  | "Semua"
+  | "RPG"
+  | "Action"
+  | "Sandbox"
+  | "Adventure"
+  | "MOBA"
+  | "Battle Royale"
+  | "FPS"
+  | "Balapan"
+  | "Olahraga"
+  | "Strategi"
+  | "Puzzle"
+  | "Simulasi"
+  | "Horor";
 //test clone
 type Game = {
   title: string;
@@ -86,9 +100,96 @@ const games: Game[] = [
     image:
       "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/0e/df/12/0edf1230-3f6e-fbb3-7f72-f2aa844d100a/AppIcons-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
   },
+  {
+    title: "Mobile Legends: Bang Bang",
+    developer: "MOONTON",
+    genre: "MOBA",
+    rating: 4.6,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/78/e1/77/78e177f1-e174-dfe5-bbd9-f4f2988d9b89/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "PUBG Mobile",
+    developer: "Level Infinite",
+    genre: "Battle Royale",
+    rating: 4.5,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6d/98/24/6d9824dd-f75f-9bd6-221e-33324fedecb2/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "Call of Duty: Mobile",
+    developer: "Activision",
+    genre: "FPS",
+    rating: 4.6,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bc/66/35/bc6635d9-68f4-6ab5-969f-92e034a50cfa/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "Asphalt 9: Legends",
+    developer: "Gameloft",
+    genre: "Balapan",
+    rating: 4.7,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/50/ee/8c/50ee8cac-b86d-1b2a-4b4a-ee49b85de53b/AppIcon-0-0-1x_U007epad-0-1-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "EA SPORTS FC Mobile",
+    developer: "Electronic Arts",
+    genre: "Olahraga",
+    rating: 4.5,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/41/d1/84/41d18457-ec03-6812-f0a7-8a83686c6009/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "Clash of Clans",
+    developer: "Supercell",
+    genre: "Strategi",
+    rating: 4.8,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ca/3a/33/ca3a3391-1dfe-a6c9-3701-97cc86f45241/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "Candy Crush Saga",
+    developer: "King",
+    genre: "Puzzle",
+    rating: 4.7,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/72/83/04/728304ea-32e2-1979-e845-e5f25dd731f6/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "The Sims FreePlay",
+    developer: "Electronic Arts",
+    genre: "Simulasi",
+    rating: 4.4,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/74/80/02/74800225-d2dc-1911-188e-2f00364835a7/AppIcon-0-0-1x_U007epad-0-1-85-220.png/512x512bb.jpg",
+  },
+  {
+    title: "Identity V",
+    developer: "NetEase Games",
+    genre: "Horor",
+    rating: 4.5,
+    image:
+      "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/9b/f0/3b/9bf03bac-78e6-694a-abd6-1e3248958d16/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+  },
 ];
 
-const genres: Genre[] = ["Semua", "RPG", "Action", "Sandbox", "Adventure"];
+const genres: Genre[] = [
+  "Semua",
+  "RPG",
+  "Action",
+  "Sandbox",
+  "Adventure",
+  "MOBA",
+  "Battle Royale",
+  "FPS",
+  "Balapan",
+  "Olahraga",
+  "Strategi",
+  "Puzzle",
+  "Simulasi",
+  "Horor",
+];
 
 export default function HomeScreen() {
   const [searchText, setSearchText] = useState("");
@@ -158,29 +259,38 @@ export default function HomeScreen() {
         </Text>
 
         {filteredGames.length > 0 ? (
-          filteredGames.map((game) => (
-            <View key={game.title} style={styles.gameCard}>
-              <Image
-                accessibilityLabel={`Gambar ${game.title}`}
-                contentFit="contain"
-                source={game.image}
-                style={styles.gameImage}
-                transition={200}
-              />
-              <View style={styles.gameContent}>
-                <Text numberOfLines={2} style={styles.gameTitle}>
-                  {game.title}
-                </Text>
-                <Text style={styles.gameInfo}>{game.developer}</Text>
-                <View style={styles.gameDetails}>
-                  <Text style={styles.gameGenre}>{game.genre}</Text>
-                  <Text numberOfLines={1} style={styles.gameRating}>
-                    Rating {game.rating}
+          <View style={styles.gameGrid}>
+            {filteredGames.map((game) => (
+              <View key={game.title} style={styles.gameCard}>
+                <Image
+                  accessibilityLabel={`Gambar ${game.title}`}
+                  contentFit="contain"
+                  source={game.image}
+                  style={styles.gameImage}
+                  transition={200}
+                />
+                <View style={styles.gameContent}>
+                  <Text numberOfLines={2} style={styles.gameTitle}>
+                    {game.title}
                   </Text>
+                  <Text numberOfLines={1} style={styles.gameInfo}>
+                    {game.developer}
+                  </Text>
+                  <View style={styles.gameDetails}>
+                    <Text numberOfLines={1} style={styles.gameGenre}>
+                      {game.genre}
+                    </Text>
+                    <Text
+                      accessibilityLabel={`Rating ${game.rating} dari 5`}
+                      style={styles.gameRating}
+                    >
+                      ★ {game.rating.toFixed(1)}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))
+            ))}
+          </View>
         ) : (
           <Text style={styles.emptyMessage}>Game tidak ditemukan.</Text>
         )}
@@ -247,51 +357,62 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
   },
-  gameCard: {
+  gameGrid: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  gameCard: {
+    width: "46%",
     backgroundColor: "#0F172A",
-    borderColor: "#1E3A5F",
-    borderRadius: 10,
+    borderColor: "#1E293B",
+    borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 10,
-    padding: 14,
+    marginBottom: 14,
+    overflow: "hidden",
   },
   gameImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    marginRight: 14,
+    width: "100%",
+    aspectRatio: 1,
     backgroundColor: "#111827",
   },
   gameContent: {
-    flex: 1,
-    minWidth: 0,
+    padding: 10,
   },
   gameTitle: {
     color: "#F8FAFC",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
+    lineHeight: 18,
+    minHeight: 36,
   },
   gameInfo: {
     color: "#CBD5E1",
-    marginTop: 5,
+    fontSize: 12,
+    marginTop: 3,
   },
   gameDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     marginTop: 10,
   },
   gameGenre: {
-    color: "#38BDF8",
+    color: "#7DD3FC",
     fontWeight: "bold",
+    backgroundColor: "#082F49",
+    borderRadius: 7,
+    overflow: "hidden",
+    fontSize: 11,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexShrink: 1,
   },
   gameRating: {
-    color: "#CBD5E1",
-    flexShrink: 1,
-    textAlign: "right",
+    color: "#FDE68A",
+    fontWeight: "bold",
+    fontSize: 12,
   },
   emptyMessage: {
     color: "#CBD5E1",
