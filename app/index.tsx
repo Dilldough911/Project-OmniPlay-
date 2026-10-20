@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFavorites } from "../components/favorites-context";
 
 type Genre =
   | "Semua"
@@ -192,18 +194,22 @@ const genres: Genre[] = [
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { favorites } = useFavorites();
   const [searchText, setSearchText] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<Genre>("Semua");
+  const [showFavorites, setShowFavorites] = useState(false);
 
   const search = searchText.trim().toLowerCase();
   const filteredGames = games.filter((game) => {
     const matchesGenre =
       selectedGenre === "Semua" || game.genre === selectedGenre;
+    const matchesFavorites = !showFavorites || favorites.includes(game.title);
     const matchesSearch =
       game.title.toLowerCase().includes(search) ||
       game.developer.toLowerCase().includes(search);
 
-    return matchesGenre && matchesSearch;
+    return matchesGenre && matchesFavorites && matchesSearch;
   });
 
   return (
@@ -213,10 +219,52 @@ export default function HomeScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Daftar Game</Text>
-        <Text style={styles.subtitle}>
-          Cari game berdasarkan nama atau genre.
+        <Text style={styles.title}>
+          {showFavorites ? "Game Favorit" : "Daftar Game"}
         </Text>
+        <Text style={styles.subtitle}>
+          Temukan game dan saring daftar sesuai yang ingin kamu lihat.
+        </Text>
+
+        <Text style={styles.filterLabel}>Pilih daftar</Text>
+        <View style={styles.listMode}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: !showFavorites }}
+            onPress={() => setShowFavorites(false)}
+            style={[
+              styles.listModeButton,
+              !showFavorites && styles.selectedListModeButton,
+            ]}
+          >
+            <Text
+              style={[
+                styles.listModeText,
+                !showFavorites && styles.selectedListModeText,
+              ]}
+            >
+              Semua game
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: showFavorites }}
+            onPress={() => setShowFavorites(true)}
+            style={[
+              styles.listModeButton,
+              showFavorites && styles.selectedListModeButton,
+            ]}
+          >
+            <Text
+              style={[
+                styles.listModeText,
+                showFavorites && styles.selectedListModeText,
+              ]}
+            >
+              ♡ Favorit ({favorites.length})
+            </Text>
+          </Pressable>
+        </View>
 
         <TextInput
           accessibilityLabel="Cari game"
@@ -227,7 +275,7 @@ export default function HomeScreen() {
           value={searchText}
         />
 
-        <Text style={styles.sectionTitle}>Pilih genre</Text>
+        <Text style={styles.filterLabel}>Filter berdasarkan genre</Text>
         <View style={styles.genreList}>
           {genres.map((genre) => {
             const isSelected = selectedGenre === genre;
@@ -255,13 +303,33 @@ export default function HomeScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>
-          Game ditemukan: {filteredGames.length}
+          {showFavorites ? "Game favorit" : "Daftar game"} ·{" "}
+          {selectedGenre === "Semua" ? "Semua genre" : selectedGenre} ·{" "}
+          {filteredGames.length} game
         </Text>
 
         {filteredGames.length > 0 ? (
           <View style={styles.gameGrid}>
             {filteredGames.map((game) => (
-              <View key={game.title} style={styles.gameCard}>
+              <Pressable
+                accessibilityHint="Buka informasi lengkap game"
+                accessibilityLabel={`Lihat detail ${game.title}`}
+                accessibilityRole="button"
+                key={game.title}
+                onPress={() =>
+                  router.push({
+                    pathname: "/game-detail",
+                    params: {
+                      title: game.title,
+                      developer: game.developer,
+                      genre: game.genre,
+                      rating: String(game.rating),
+                      image: String(game.image),
+                    },
+                  })
+                }
+                style={styles.gameCard}
+              >
                 <Image
                   accessibilityLabel={`Gambar ${game.title}`}
                   contentFit="contain"
@@ -288,11 +356,15 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
         ) : (
-          <Text style={styles.emptyMessage}>Game tidak ditemukan.</Text>
+          <Text style={styles.emptyMessage}>
+            {showFavorites && favorites.length === 0
+              ? "Belum ada game favorit. Buka detail game lalu tekan Simpan ke favorit."
+              : "Game tidak ditemukan."}
+          </Text>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -316,6 +388,37 @@ const styles = StyleSheet.create({
     color: "#CBD5E1",
     marginTop: 6,
     marginBottom: 20,
+  },
+  filterLabel: {
+    color: "#94A3B8",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 9,
+  },
+  listMode: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 22,
+  },
+  listModeButton: {
+    backgroundColor: "#0F172A",
+    borderColor: "#1E3A5F",
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  selectedListModeButton: {
+    backgroundColor: "#172554",
+    borderColor: "#3B82F6",
+  },
+  listModeText: {
+    color: "#CBD5E1",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  selectedListModeText: {
+    color: "#FFFFFF",
   },
   searchInput: {
     backgroundColor: "#0F172A",
