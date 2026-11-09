@@ -15,29 +15,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme, type AppColors } from "../../components/app-theme-context";
 import { useFavorites } from "../../components/favorites-context";
 import { ThemeToggle } from "../../components/theme-toggle";
-import { games } from "../../data/games";
 
 export default function FavoritesScreen() {
   const router = useRouter();
-  const { favorites, toggleFavorite } = useFavorites();
+  const { favorites, favoriteItems, toggleFavorite } = useFavorites();
   const { theme, colors } = useAppTheme();
   const [searchText, setSearchText] = useState("");
 
   const styles = createStyles(colors);
 
-  const favoriteGames = useMemo(() => {
+  const filteredFavorites = useMemo(() => {
     const search = searchText.trim().toLowerCase();
-    return games
-      .filter((game) => favorites.includes(game.title))
-      .filter((game) => {
-        if (!search) return true;
-        return (
-          game.title.toLowerCase().includes(search) ||
-          game.developer.toLowerCase().includes(search) ||
-          game.genre.toLowerCase().includes(search)
-        );
-      });
-  }, [favorites, searchText]);
+    return favoriteItems.filter((game) => {
+      if (!search) return true;
+      return (
+        game.title.toLowerCase().includes(search) ||
+        game.developer.toLowerCase().includes(search) ||
+        game.genre.toLowerCase().includes(search)
+      );
+    });
+  }, [favoriteItems, searchText]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -70,9 +67,9 @@ export default function FavoritesScreen() {
             {/* Search Input for Favorites */}
             <View style={styles.searchContainer}>
               <Ionicons
+                color={colors.textMuted}
                 name="search-outline"
                 size={20}
-                color={colors.textMuted}
                 style={styles.searchIcon}
               />
               <TextInput
@@ -90,9 +87,9 @@ export default function FavoritesScreen() {
                   style={styles.clearSearchButton}
                 >
                   <Ionicons
+                    color={colors.textMuted}
                     name="close-circle"
                     size={18}
-                    color={colors.textMuted}
                   />
                 </Pressable>
               )}
@@ -102,18 +99,18 @@ export default function FavoritesScreen() {
             <View style={styles.resultsInfoRow}>
               <Text style={styles.sectionTitle}>Daftar Tersimpan</Text>
               <Text style={styles.resultsCount}>
-                {favoriteGames.length} game
+                {filteredFavorites.length} game
               </Text>
             </View>
 
-            {favoriteGames.length > 0 ? (
+            {filteredFavorites.length > 0 ? (
               <View style={styles.gameGrid}>
-                {favoriteGames.map((game) => (
+                {filteredFavorites.map((game) => (
                   <Pressable
-                    key={game.id}
                     accessibilityHint="Buka informasi lengkap game"
                     accessibilityLabel={`Lihat detail ${game.title}`}
                     accessibilityRole="button"
+                    key={game.id}
                     onPress={() =>
                       router.push({
                         pathname: "/game-detail",
@@ -126,8 +123,8 @@ export default function FavoritesScreen() {
                           image: game.image,
                           storeUrl: game.storeUrl,
                           description: game.description,
-                          size: game.size,
-                          downloads: game.downloads,
+                          platform: game.platform || "",
+                          releaseDate: game.releaseDate || "",
                         },
                       })
                     }
@@ -145,11 +142,11 @@ export default function FavoritesScreen() {
                         accessibilityLabel={`Hapus ${game.title} dari favorit`}
                         onPress={(e) => {
                           e.stopPropagation();
-                          toggleFavorite(game.title);
+                          toggleFavorite(game);
                         }}
                         style={styles.quickFavoriteButton}
                       >
-                        <Ionicons name="heart" size={17} color="#EF4444" />
+                        <Ionicons color="#EF4444" name="heart" size={17} />
                       </Pressable>
                     </View>
 
@@ -166,9 +163,9 @@ export default function FavoritesScreen() {
                         </Text>
                         <View style={styles.ratingBadge}>
                           <Ionicons
+                            color={colors.ratingText}
                             name="star"
                             size={11}
-                            color={colors.ratingText}
                           />
                           <Text style={styles.gameRating}>
                             {game.rating.toFixed(1)}
@@ -182,9 +179,9 @@ export default function FavoritesScreen() {
             ) : (
               <View style={styles.emptySearchContainer}>
                 <Ionicons
+                  color={colors.textMuted}
                   name="search-outline"
                   size={42}
-                  color={colors.textMuted}
                 />
                 <Text style={styles.emptyTitle}>Tidak ditemukan</Text>
                 <Text style={styles.emptySubtitle}>
@@ -196,21 +193,21 @@ export default function FavoritesScreen() {
         ) : (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconCircle}>
-              <Ionicons name="heart-outline" size={48} color={colors.accent} />
+              <Ionicons color={colors.accent} name="heart-outline" size={48} />
             </View>
             <Text style={styles.emptyStateTitle}>Belum Ada Game Favorit</Text>
             <Text style={styles.emptyStateText}>
-              Kamu belum menyimpan game apa pun. Jelajahi katalog game seru kami dan tekan ikon hati untuk menyimpannya di sini.
+              Kamu belum menyimpan game apa pun. Jelajahi katalog game seru kami di tab Jelajah dan tekan ikon hati untuk menyimpannya di sini.
             </Text>
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push("/(tabs)/index")}
+              onPress={() => router.push("/(tabs)")}
               style={styles.exploreButton}
             >
               <Ionicons
+                color={colors.selectedText}
                 name="game-controller-outline"
                 size={18}
-                color={colors.selectedText}
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.exploreButtonText}>Jelajahi Game</Text>

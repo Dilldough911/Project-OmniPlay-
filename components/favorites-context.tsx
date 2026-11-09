@@ -1,26 +1,59 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { fallbackGames } from "../data/games";
+import type { IGame } from "../services/gameService";
 
 type FavoritesContextValue = {
   favorites: string[];
+  favoriteItems: IGame[];
   isFavorite: (title: string) => boolean;
-  toggleFavorite: (title: string) => void;
+  toggleFavorite: (game: IGame | string) => void;
 };
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<IGame[]>([]);
+
+  // Array of string titles for fast lookup
+  const favorites = favoriteItems.map((item) => item.title);
+
+  const isFavorite = (title: string) => {
+    return favorites.includes(title);
+  };
+
+  const toggleFavorite = (gameOrTitle: IGame | string) => {
+    const title = typeof gameOrTitle === "string" ? gameOrTitle : gameOrTitle.title;
+    const exists = favorites.includes(title);
+
+    if (exists) {
+      setFavoriteItems((current) => current.filter((g) => g.title !== title));
+    } else {
+      let gameToAdd: IGame;
+      if (typeof gameOrTitle === "object") {
+        gameToAdd = gameOrTitle;
+      } else {
+        // Fallback pencarian di fallbackGames jika hanya dikirim title string
+        const found = fallbackGames.find((g) => g.title === gameOrTitle);
+        gameToAdd = found || {
+          id: String(Date.now()),
+          title: gameOrTitle,
+          developer: "Unknown",
+          genre: "Game",
+          rating: 4.5,
+          image: "https://via.placeholder.com/512",
+          storeUrl: "",
+          description: "Game tersimpan di koleksi favorit.",
+        };
+      }
+      setFavoriteItems((current) => [...current, gameToAdd]);
+    }
+  };
 
   const value: FavoritesContextValue = {
     favorites,
-    isFavorite: (title) => favorites.includes(title),
-    toggleFavorite: (title) => {
-      setFavorites((currentFavorites) =>
-        currentFavorites.includes(title)
-          ? currentFavorites.filter((favorite) => favorite !== title)
-          : [...currentFavorites, title],
-      );
-    },
+    favoriteItems,
+    isFavorite,
+    toggleFavorite,
   };
 
   return (

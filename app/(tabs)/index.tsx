@@ -2,9 +2,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +17,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme, type AppColors } from "../../components/app-theme-context";
 import { useFavorites } from "../../components/favorites-context";
 import { ThemeToggle } from "../../components/theme-toggle";
-import { games, genres, type Game, type Genre } from "../../data/games";
+import { fallbackGames } from "../../data/games";
+import {
+  fetchGamesCustomAsync,
+  type IGame,
+} from "../../services/gameService";
 
 export type SortOption =
   | "default"
@@ -24,7 +30,11 @@ export type SortOption =
   | "name-asc"
   | "name-desc";
 
-const sortOptions: { id: SortOption; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+const sortOptions: {
+  id: SortOption;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
   { id: "default", label: "Rekomendasi", icon: "sparkles-outline" },
   { id: "rating-desc", label: "Rating Tertinggi", icon: "star" },
   { id: "rating-asc", label: "Rating Terendah", icon: "star-outline" },
@@ -36,17 +46,71 @@ export default function ExploreScreen() {
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { theme, colors } = useAppTheme();
+
+  // State Pengambilan Data
+  const [gamesList, setGamesList] = useState<IGame[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isFromApi, setIsFromApi] = useState(false);
+
+  // State Filter & Sort
   const [searchText, setSearchText] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState<Genre>("Semua");
+  const [selectedGenre, setSelectedGenre] = useState<string>("Semua");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
   const styles = createStyles(colors);
 
+  // --------------------------------------------------------------------------
+  // [SYARAT 2 & 3]: Pengambilan Data Menggunakan Custom Async Function & .then()
+  // --------------------------------------------------------------------------
+  const loadGamesData = () => {
+    setLoading(true);
+    setErrorMessage(null);
+
+    // Memanggil Custom Async Function yang mengembalikan Promise
+    // Dan menggunakan rantai .then() serta .catch() sesuai kriteria tugas
+    fetchGamesCustomAsync()
+      .then((data: IGame[]) => {
+        // [SYARAT 1]: Data tersimpan dalam State bertipe Interface IGame[]
+        setGamesList(data);
+        setIsFromApi(true);
+        setLoading(false);
+        setRefreshing(false);
+      })
+      .catch((error: Error) => {
+        console.warn("Gagal memuat dari API, menggunakan data lokal:", error.message);
+        // Fallback ke data lokal jika koneksi terputus
+        setGamesList(fallbackGames);
+        setIsFromApi(false);
+        setErrorMessage(
+          "Koneksi API eksternal gagal. Menggunakan data cadangan lokal.",
+        );
+        setLoading(false);
+        setRefreshing(false);
+      });
+  };
+
+  useEffect(() => {
+    loadGamesData();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadGamesData();
+  };
+
+  // Ekstraksi daftar genre dinamis dari data game
+  const dynamicGenres = useMemo(() => {
+    const unique = Array.from(new Set(gamesList.map((g) => g.genre)));
+    return ["Semua", ...unique];
+  }, [gamesList]);
+
+  // Filter & Urutkan Data
   const filteredAndSortedGames = useMemo(() => {
     const search = searchText.trim().toLowerCase();
 
-    // 1. Filter
-    const filtered = games.filter((game) => {
+    const filtered = gamesList.filter((game) => {
       const matchesGenre =
         selectedGenre === "Semua" || game.genre === selectedGenre;
       const matchesSearch =
@@ -56,7 +120,6 @@ export default function ExploreScreen() {
       return matchesGenre && matchesSearch;
     });
 
-    // 2. Sort
     const sorted = [...filtered];
     switch (sortBy) {
       case "rating-desc":
@@ -73,12 +136,11 @@ export default function ExploreScreen() {
         break;
       case "default":
       default:
-        // Tetap sesuai urutan kurasi default
         break;
     }
 
     return sorted;
-  }, [searchText, selectedGenre, sortBy]);
+  }, [gamesList, searchText, selectedGenre, sortBy]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -86,16 +148,48 @@ export default function ExploreScreen() {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            colors={[colors.accent]}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+            tintColor={colors.accent}
+          />
+        }
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={styles.headerTextGroup}>
             <Text style={styles.title}>OmniPlay</Text>
-            <Text style={styles.subtitle}>Jelajahi dan temukan game terbaik</Text>
+            <Text style={styles.subtitle}>
+              Jelajahi game seru dari External API
+            </Text>
           </View>
           <ThemeToggle />
         </View>
+
+        {/* Status Indikator Sumber Data (API vs Offline) */}
+        <View style={styles.apiStatusBadge}>
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: isFromApi ? "#10B981" : "#F59E0B" },
+            ]}
+          />
+          <Text style={styles.apiStatusText}>
+            {isFromApi
+              ? "External API: FreeToGame (Live Online)"
+              : "Mode Cadangan Lokal"}
+          </Text>
+        </View>
+
+        {errorMessage && (
+          <View style={styles.warningBox}>
+            <Ionicons name="warning-outline" size={16} color="#F59E0B" />
+            <Text style={styles.warningText}>{errorMessage}</Text>
+          </View>
+        )}
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -108,7 +202,7 @@ export default function ExploreScreen() {
           <TextInput
             accessibilityLabel="Cari game"
             onChangeText={setSearchText}
-            placeholder="Cari game atau developer..."
+            placeholder="Cari judul game atau pengembang..."
             placeholderTextColor={colors.textMuted}
             style={styles.searchInput}
             value={searchText}
@@ -133,16 +227,16 @@ export default function ExploreScreen() {
           <Text style={styles.filterLabel}>Urutkan Berdasarkan</Text>
         </View>
         <ScrollView
+          contentContainerStyle={styles.sortContainer}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.sortContainer}
         >
           {sortOptions.map((opt) => {
             const isSelected = sortBy === opt.id;
             return (
               <Pressable
-                key={opt.id}
                 accessibilityRole="button"
+                key={opt.id}
                 onPress={() => setSortBy(opt.id)}
                 style={[
                   styles.sortButton,
@@ -150,9 +244,9 @@ export default function ExploreScreen() {
                 ]}
               >
                 <Ionicons
+                  color={isSelected ? colors.selectedText : colors.textSecondary}
                   name={opt.icon}
                   size={14}
-                  color={isSelected ? colors.selectedText : colors.textSecondary}
                   style={styles.sortIcon}
                 />
                 <Text
@@ -170,19 +264,19 @@ export default function ExploreScreen() {
 
         {/* Filter Genre */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.filterLabel}>Filter Kategori Genre</Text>
+          <Text style={styles.filterLabel}>Kategori Genre</Text>
         </View>
         <ScrollView
+          contentContainerStyle={styles.genreScrollContainer}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.genreScrollContainer}
         >
-          {genres.map((genre) => {
+          {dynamicGenres.map((genre) => {
             const isSelected = selectedGenre === genre;
             return (
               <Pressable
-                key={genre}
                 accessibilityRole="button"
+                key={genre}
                 onPress={() => setSelectedGenre(genre)}
                 style={[
                   styles.genreButton,
@@ -202,7 +296,7 @@ export default function ExploreScreen() {
           })}
         </ScrollView>
 
-        {/* Hasil & Hitungan Game */}
+        {/* Ringkasan Hasil */}
         <View style={styles.resultsInfoRow}>
           <Text style={styles.sectionTitle}>
             {selectedGenre === "Semua" ? "Semua Genre" : selectedGenre}
@@ -212,18 +306,26 @@ export default function ExploreScreen() {
           </Text>
         </View>
 
-        {/* Grid Game Card */}
-        {filteredAndSortedGames.length > 0 ? (
+        {/* Loading Spinner */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color={colors.accent} size="large" />
+            <Text style={styles.loadingText}>
+              Mengambil data dari External API...
+            </Text>
+          </View>
+        ) : filteredAndSortedGames.length > 0 ? (
+          /* Grid Game */
           <View style={styles.gameGrid}>
             {filteredAndSortedGames.map((game) => {
               const favorite = isFavorite(game.title);
 
               return (
                 <Pressable
-                  key={game.id}
                   accessibilityHint="Buka informasi lengkap game"
                   accessibilityLabel={`Lihat detail ${game.title}`}
                   accessibilityRole="button"
+                  key={game.id}
                   onPress={() =>
                     router.push({
                       pathname: "/game-detail",
@@ -236,8 +338,8 @@ export default function ExploreScreen() {
                         image: game.image,
                         storeUrl: game.storeUrl,
                         description: game.description,
-                        size: game.size,
-                        downloads: game.downloads,
+                        platform: game.platform || "",
+                        releaseDate: game.releaseDate || "",
                       },
                     })
                   }
@@ -267,9 +369,9 @@ export default function ExploreScreen() {
                       ]}
                     >
                       <Ionicons
+                        color={favorite ? "#EF4444" : "#FFFFFF"}
                         name={favorite ? "heart" : "heart-outline"}
                         size={17}
-                        color={favorite ? "#EF4444" : "#FFFFFF"}
                       />
                     </Pressable>
                   </View>
@@ -286,7 +388,11 @@ export default function ExploreScreen() {
                         {game.genre}
                       </Text>
                       <View style={styles.ratingBadge}>
-                        <Ionicons name="star" size={11} color={colors.ratingText} />
+                        <Ionicons
+                          color={colors.ratingText}
+                          name="star"
+                          size={11}
+                        />
                         <Text style={styles.gameRating}>
                           {game.rating.toFixed(1)}
                         </Text>
@@ -300,13 +406,13 @@ export default function ExploreScreen() {
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons
+              color={colors.textMuted}
               name="search-outline"
               size={52}
-              color={colors.textMuted}
             />
             <Text style={styles.emptyTitle}>Game tidak ditemukan</Text>
             <Text style={styles.emptySubtitle}>
-              Coba gunakan kata kunci lain atau ubah pilihan filter genre.
+              Coba gunakan kata kunci lain atau ubah pilihan kategori genre.
             </Text>
             {(searchText.length > 0 || selectedGenre !== "Semua") && (
               <Pressable
@@ -343,7 +449,7 @@ const createStyles = (colors: AppColors) =>
       flexDirection: "row",
       justifyContent: "space-between",
       gap: 12,
-      marginBottom: 16,
+      marginBottom: 12,
     },
     headerTextGroup: {
       flex: 1,
@@ -356,8 +462,45 @@ const createStyles = (colors: AppColors) =>
     },
     subtitle: {
       color: colors.textSecondary,
-      marginTop: 3,
+      marginTop: 2,
       fontSize: 13,
+    },
+    apiStatusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surfaceAlt,
+      alignSelf: "flex-start",
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 16,
+      marginBottom: 14,
+      gap: 6,
+    },
+    statusDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+    },
+    apiStatusText: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      fontWeight: "600",
+    },
+    warningBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(245, 158, 11, 0.12)",
+      borderColor: "rgba(245, 158, 11, 0.3)",
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 10,
+      marginBottom: 14,
+      gap: 8,
+    },
+    warningText: {
+      color: "#F59E0B",
+      fontSize: 12,
+      flex: 1,
     },
     searchContainer: {
       flexDirection: "row",
@@ -367,7 +510,7 @@ const createStyles = (colors: AppColors) =>
       borderWidth: 1,
       borderRadius: 12,
       paddingHorizontal: 12,
-      marginBottom: 18,
+      marginBottom: 16,
     },
     searchIcon: {
       marginRight: 8,
@@ -464,6 +607,16 @@ const createStyles = (colors: AppColors) =>
     resultsCount: {
       color: colors.textMuted,
       fontSize: 12,
+    },
+    loadingContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+      gap: 12,
+    },
+    loadingText: {
+      color: colors.textSecondary,
+      fontSize: 13,
     },
     gameGrid: {
       flexDirection: "row",

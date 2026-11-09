@@ -16,7 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme, type AppColors } from "../components/app-theme-context";
 import { useFavorites } from "../components/favorites-context";
 import { ThemeToggle } from "../components/theme-toggle";
-import { games } from "../data/games";
+import { fallbackGames } from "../data/games";
+import type { IGame } from "../services/gameService";
 
 export default function GameDetailScreen() {
   const router = useRouter();
@@ -33,19 +34,20 @@ export default function GameDetailScreen() {
     image?: string;
     storeUrl?: string;
     description?: string;
-    size?: string;
-    downloads?: string;
+    platform?: string;
+    releaseDate?: string;
   }>();
 
-  // Cari data game lengkap dari data/games.ts berdasarkan id atau title
-  const foundGame = games.find(
+  // Cari data jika ada di fallback data
+  const foundGame = fallbackGames.find(
     (g) =>
       (params.id && g.id === params.id) ||
       (params.title && g.title.toLowerCase() === params.title.toLowerCase()),
   );
 
   const title = foundGame?.title ?? params.title ?? "";
-  const developer = foundGame?.developer ?? params.developer ?? "Unknown Developer";
+  const developer =
+    foundGame?.developer ?? params.developer ?? "Unknown Developer";
   const genre = foundGame?.genre ?? params.genre ?? "Game";
   const rating = foundGame?.rating ?? Number(params.rating) ?? 4.5;
   const image = foundGame?.image ?? params.image ?? "";
@@ -53,13 +55,27 @@ export default function GameDetailScreen() {
   const description =
     foundGame?.description ??
     params.description ??
-    "Temukan keseruan dan pengalaman luar biasa bermain game ini bersama teman-temanmu.";
-  const size = foundGame?.size ?? params.size ?? "Bervariasi";
-  const downloads = foundGame?.downloads ?? params.downloads ?? "10Jt+";
+    "Temukan keseruan dan pengalaman bermain game ini.";
+  const platform = foundGame?.platform ?? params.platform ?? "PC / Mobile";
+  const releaseDate =
+    foundGame?.releaseDate ?? params.releaseDate ?? "Tersedia";
+
+  const currentGameObject: IGame = {
+    id: foundGame?.id ?? params.id ?? String(Date.now()),
+    title,
+    developer,
+    genre,
+    rating,
+    image,
+    storeUrl,
+    description,
+    platform,
+    releaseDate,
+  };
 
   const favorite = isFavorite(title);
 
-  // Aksi Interaktif 1: Buka Tautan Store
+  // Aksi Interaktif 1: Buka Tautan Store / Play
   const handleOpenStore = async () => {
     if (!storeUrl) {
       Alert.alert("Info", "Tautan unduhan/store untuk game ini belum tersedia.");
@@ -69,7 +85,7 @@ export default function GameDetailScreen() {
       await Linking.openURL(storeUrl);
     } catch {
       Alert.alert(
-        "Gagal Membuka Store",
+        "Gagal Membuka Tautan",
         "Tidak dapat membuka tautan store di perangkat ini.",
       );
     }
@@ -80,7 +96,7 @@ export default function GameDetailScreen() {
     try {
       await Share.share({
         title: `Rekomendasi Game: ${title}`,
-        message: `🎮 Rekomendasi Game Keren: ${title}\n👨‍💻 Developer: ${developer}\n🏷️ Genre: ${genre}\n⭐ Rating: ${rating.toFixed(1)} / 5\n\n📥 Unduh di Google Play Store:\n${storeUrl}`,
+        message: `🎮 Rekomendasi Game Keren: ${title}\n👨‍💻 Pengembang: ${developer}\n🏷️ Genre: ${genre}\n⭐ Rating: ${rating.toFixed(1)} / 5\n\n🔗 Kunjungi / Mainkan di sini:\n${storeUrl}`,
       });
     } catch {
       Alert.alert(
@@ -103,10 +119,12 @@ export default function GameDetailScreen() {
             accessibilityHint="Kembali ke halaman sebelumnya"
             accessibilityLabel="Kembali"
             accessibilityRole="button"
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/index"))}
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/(tabs)")
+            }
             style={styles.backButton}
           >
-            <Ionicons name="chevron-back" size={20} color={colors.accent} />
+            <Ionicons color={colors.accent} name="chevron-back" size={20} />
             <Text style={styles.backButtonText}>Kembali</Text>
           </Pressable>
           <ThemeToggle />
@@ -132,33 +150,43 @@ export default function GameDetailScreen() {
                   <Text style={styles.genreBadgeText}>{genre}</Text>
                 </View>
                 <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={13} color={colors.ratingText} />
-                  <Text style={styles.ratingBadgeText}>{rating.toFixed(1)} / 5</Text>
+                  <Ionicons
+                    color={colors.ratingText}
+                    name="star"
+                    size={13}
+                  />
+                  <Text style={styles.ratingBadgeText}>
+                    {rating.toFixed(1)} / 5
+                  </Text>
                 </View>
                 <View style={styles.metaBadge}>
-                  <Ionicons name="download-outline" size={13} color={colors.textSecondary} />
-                  <Text style={styles.metaBadgeText}>{downloads}</Text>
+                  <Ionicons
+                    color={colors.textSecondary}
+                    name="hardware-chip-outline"
+                    size={13}
+                  />
+                  <Text style={styles.metaBadgeText}>{platform}</Text>
                 </View>
               </View>
             </View>
 
             {/* Panel Aksi Interaktif */}
             <View style={styles.actionPanel}>
-              {/* Tombol Utama: Buka di Store / Unduh */}
+              {/* Tombol Utama: Buka di Store / Mainkan */}
               <Pressable
-                accessibilityLabel="Unduh atau buka di Store"
+                accessibilityLabel="Buka atau unduh game"
                 accessibilityRole="button"
                 onPress={handleOpenStore}
                 style={styles.primaryActionButton}
               >
                 <Ionicons
-                  name="logo-google-playstore"
-                  size={20}
                   color={colors.selectedText}
+                  name="open-outline"
+                  size={20}
                   style={styles.buttonIcon}
                 />
                 <Text style={styles.primaryActionButtonText}>
-                  Buka di Play Store
+                  Mainkan / Buka di Store
                 </Text>
               </Pressable>
 
@@ -171,9 +199,9 @@ export default function GameDetailScreen() {
                   style={styles.secondaryActionButton}
                 >
                   <Ionicons
+                    color={colors.accent}
                     name="share-social-outline"
                     size={18}
-                    color={colors.accent}
                     style={styles.buttonIcon}
                   />
                   <Text style={styles.secondaryActionButtonText}>Bagikan</Text>
@@ -187,16 +215,16 @@ export default function GameDetailScreen() {
                   }
                   accessibilityRole="button"
                   accessibilityState={{ selected: favorite }}
-                  onPress={() => toggleFavorite(title)}
+                  onPress={() => toggleFavorite(currentGameObject)}
                   style={[
                     styles.secondaryActionButton,
                     favorite && styles.favoriteActiveButton,
                   ]}
                 >
                   <Ionicons
+                    color={favorite ? "#EF4444" : colors.accent}
                     name={favorite ? "heart" : "heart-outline"}
                     size={18}
-                    color={favorite ? "#EF4444" : colors.accent}
                     style={styles.buttonIcon}
                   />
                   <Text
@@ -215,9 +243,9 @@ export default function GameDetailScreen() {
             <View style={styles.infoCard}>
               <View style={styles.cardHeaderRow}>
                 <Ionicons
+                  color={colors.accent}
                   name="information-circle-outline"
                   size={20}
-                  color={colors.accent}
                 />
                 <Text style={styles.sectionTitle}>Tentang Game</Text>
               </View>
@@ -228,11 +256,11 @@ export default function GameDetailScreen() {
             <View style={styles.infoCard}>
               <View style={styles.cardHeaderRow}>
                 <Ionicons
+                  color={colors.accent}
                   name="layers-outline"
                   size={20}
-                  color={colors.accent}
                 />
-                <Text style={styles.sectionTitle}>Informasi Tambahan</Text>
+                <Text style={styles.sectionTitle}>Informasi Lengkap</Text>
               </View>
 
               <View style={styles.infoRow}>
@@ -248,20 +276,22 @@ export default function GameDetailScreen() {
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Rating Pengguna</Text>
-                <Text style={styles.infoValue}>★ {rating.toFixed(1)} dari 5.0</Text>
+                <Text style={styles.infoLabel}>Platform</Text>
+                <Text style={styles.infoValue}>{platform}</Text>
               </View>
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Ukuran Download</Text>
-                <Text style={styles.infoValue}>{size}</Text>
+                <Text style={styles.infoLabel}>Tanggal Rilis</Text>
+                <Text style={styles.infoValue}>{releaseDate}</Text>
               </View>
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Total Unduhan</Text>
-                <Text style={styles.infoValue}>{downloads}</Text>
+                <Text style={styles.infoLabel}>Rating Komunitas</Text>
+                <Text style={styles.infoValue}>
+                  ★ {rating.toFixed(1)} dari 5.0
+                </Text>
               </View>
             </View>
           </>
@@ -269,7 +299,8 @@ export default function GameDetailScreen() {
           <View style={styles.infoCard}>
             <Text style={styles.sectionTitle}>Game Tidak Ditemukan</Text>
             <Text style={styles.description}>
-              Informasi game ini tidak tersedia. Silakan kembali ke katalog untuk melihat game lain.
+              Informasi game ini tidak tersedia. Silakan kembali ke katalog
+              untuk melihat game lain.
             </Text>
           </View>
         )}
@@ -319,15 +350,11 @@ const createStyles = (colors: AppColors) =>
       padding: 22,
     },
     gameImage: {
-      width: 130,
-      height: 130,
-      borderRadius: 26,
+      width: 140,
+      height: 140,
+      borderRadius: 24,
       backgroundColor: colors.imageBackground,
       marginBottom: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
     },
     title: {
       color: colors.text,
@@ -402,7 +429,6 @@ const createStyles = (colors: AppColors) =>
       borderRadius: 14,
       paddingVertical: 14,
       paddingHorizontal: 20,
-      elevation: 2,
     },
     primaryActionButtonText: {
       color: colors.selectedText,
