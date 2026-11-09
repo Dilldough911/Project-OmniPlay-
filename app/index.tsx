@@ -11,7 +11,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAppTheme, type AppColors } from "../components/app-theme-context";
 import { useFavorites } from "../components/favorites-context";
+import { ThemeToggle } from "../components/theme-toggle";
 
 type Genre =
   | "Semua"
@@ -28,7 +30,6 @@ type Genre =
   | "Puzzle"
   | "Simulasi"
   | "Horor";
-//test clone
 type Game = {
   title: string;
   developer: string;
@@ -196,9 +197,11 @@ const genres: Genre[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { favorites } = useFavorites();
+  const { theme, colors } = useAppTheme();
   const [searchText, setSearchText] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<Genre>("Semua");
   const [showFavorites, setShowFavorites] = useState(false);
+  const styles = createStyles(colors);
 
   const search = searchText.trim().toLowerCase();
   const filteredGames = games.filter((game) => {
@@ -214,14 +217,17 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
+      <StatusBar style={theme === "dark" ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>
-          {showFavorites ? "Game Favorit" : "Daftar Game"}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>
+            {showFavorites ? "Game Favorit" : "Daftar Game"}
+          </Text>
+          <ThemeToggle />
+        </View>
         <Text style={styles.subtitle}>
           Temukan game dan saring daftar sesuai yang ingin kamu lihat.
         </Text>
@@ -270,7 +276,7 @@ export default function HomeScreen() {
           accessibilityLabel="Cari game"
           onChangeText={setSearchText}
           placeholder="Cari game atau developer"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.textMuted}
           style={styles.searchInput}
           value={searchText}
         />
@@ -371,26 +377,33 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#05070A",
+    backgroundColor: colors.background,
   },
   container: {
     padding: 20,
   },
+  titleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
   title: {
-    color: "#F8FAFC",
+    color: colors.text,
     fontSize: 26,
     fontWeight: "bold",
+    flexShrink: 1,
   },
   subtitle: {
-    color: "#CBD5E1",
+    color: colors.textSecondary,
     marginTop: 6,
     marginBottom: 20,
   },
   filterLabel: {
-    color: "#94A3B8",
+    color: colors.textMuted,
     fontSize: 13,
     fontWeight: "600",
     marginBottom: 9,
@@ -401,36 +414,36 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   listModeButton: {
-    backgroundColor: "#0F172A",
-    borderColor: "#1E3A5F",
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.surfaceAltBorder,
     borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   selectedListModeButton: {
-    backgroundColor: "#172554",
-    borderColor: "#3B82F6",
+    backgroundColor: colors.accentSurface,
+    borderColor: colors.accentBorder,
   },
   listModeText: {
-    color: "#CBD5E1",
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: "600",
   },
   selectedListModeText: {
-    color: "#FFFFFF",
+    color: colors.selectedText,
   },
   searchInput: {
-    backgroundColor: "#0F172A",
-    borderColor: "#1E3A5F",
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.surfaceAltBorder,
     borderRadius: 10,
     borderWidth: 1,
-    color: "#F8FAFC",
+    color: colors.text,
     padding: 12,
     marginBottom: 20,
   },
   sectionTitle: {
-    color: "#F8FAFC",
+    color: colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
@@ -442,22 +455,22 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   genreButton: {
-    backgroundColor: "#0F172A",
-    borderColor: "#1E3A5F",
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.surfaceAltBorder,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   selectedGenreButton: {
-    backgroundColor: "#2563EB",
-    borderColor: "#3B82F6",
+    backgroundColor: colors.accent,
+    borderColor: colors.accentBorder,
   },
   genreText: {
-    color: "#CBD5E1",
+    color: colors.textSecondary,
   },
   selectedGenreText: {
-    color: "#FFFFFF",
+    color: colors.selectedText,
     fontWeight: "bold",
   },
   gameGrid: {
@@ -467,8 +480,8 @@ const styles = StyleSheet.create({
   },
   gameCard: {
     width: "46%",
-    backgroundColor: "#0F172A",
-    borderColor: "#1E293B",
+    backgroundColor: colors.surface,
+    borderColor: colors.surfaceBorder,
     borderRadius: 16,
     borderWidth: 1,
     marginBottom: 14,
@@ -477,20 +490,20 @@ const styles = StyleSheet.create({
   gameImage: {
     width: "100%",
     aspectRatio: 1,
-    backgroundColor: "#111827",
+    backgroundColor: colors.imageBackground,
   },
   gameContent: {
     padding: 10,
   },
   gameTitle: {
-    color: "#F8FAFC",
+    color: colors.text,
     fontSize: 14,
     fontWeight: "bold",
     lineHeight: 18,
     minHeight: 36,
   },
   gameInfo: {
-    color: "#CBD5E1",
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 3,
   },
@@ -502,9 +515,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   gameGenre: {
-    color: "#7DD3FC",
+    color: colors.genreText,
     fontWeight: "bold",
-    backgroundColor: "#082F49",
+    backgroundColor: colors.genreBackground,
     borderRadius: 7,
     overflow: "hidden",
     fontSize: 11,
@@ -513,12 +526,12 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   gameRating: {
-    color: "#FDE68A",
+    color: colors.ratingText,
     fontWeight: "bold",
     fontSize: 12,
   },
   emptyMessage: {
-    color: "#CBD5E1",
+    color: colors.textSecondary,
     paddingVertical: 16,
   },
 });
