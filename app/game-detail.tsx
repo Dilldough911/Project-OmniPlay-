@@ -36,6 +36,8 @@ export default function GameDetailScreen() {
     description?: string;
     platform?: string;
     releaseDate?: string;
+    size?: string;
+    downloads?: string;
   }>();
 
   // Cari data jika ada di fallback data
@@ -59,9 +61,14 @@ export default function GameDetailScreen() {
   const platform = foundGame?.platform ?? params.platform ?? "PC / Mobile";
   const releaseDate =
     foundGame?.releaseDate ?? params.releaseDate ?? "Tersedia";
+  const size = foundGame?.size ?? params.size ?? "";
+  const downloads = foundGame?.downloads ?? params.downloads ?? "";
 
   const currentGameObject: IGame = {
-    id: foundGame?.id ?? params.id ?? String(Date.now()),
+    id:
+      foundGame?.id ??
+      params.id ??
+      (title ? `game-${title.toLowerCase().replace(/\s+/g, "-")}` : "game-detail"),
     title,
     developer,
     genre,
@@ -71,6 +78,8 @@ export default function GameDetailScreen() {
     description,
     platform,
     releaseDate,
+    size,
+    downloads,
   };
 
   const favorite = isFavorite(title);
@@ -293,6 +302,24 @@ export default function GameDetailScreen() {
                   ★ {rating.toFixed(1)} dari 5.0
                 </Text>
               </View>
+              {size ? (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Ukuran Download</Text>
+                    <Text style={styles.infoValue}>{size}</Text>
+                  </View>
+                </>
+              ) : null}
+              {downloads ? (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Total Unduhan</Text>
+                    <Text style={styles.infoValue}>{downloads}</Text>
+                  </View>
+                </>
+              ) : null}
             </View>
           </>
         ) : (

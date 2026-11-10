@@ -44,6 +44,8 @@ export interface IGame {
   platform?: string;
   releaseDate?: string;
   publisher?: string;
+  size?: string;
+  downloads?: string;
 }
 
 // URL External API publik gratis untuk katalog game

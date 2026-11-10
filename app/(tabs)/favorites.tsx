@@ -125,6 +125,8 @@ export default function FavoritesScreen() {
                           description: game.description,
                           platform: game.platform || "",
                           releaseDate: game.releaseDate || "",
+                          size: game.size || "",
+                          downloads: game.downloads || "",
                         },
                       })
                     }

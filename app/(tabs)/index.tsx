@@ -64,27 +64,39 @@ export default function ExploreScreen() {
   // --------------------------------------------------------------------------
   // [SYARAT 2 & 3]: Pengambilan Data Menggunakan Custom Async Function & .then()
   // --------------------------------------------------------------------------
-  const loadGamesData = () => {
-    setLoading(true);
-    setErrorMessage(null);
+  const loadGamesData = (resetLoading = false) => {
+    if (resetLoading) {
+      setLoading(true);
+      setErrorMessage(null);
+    }
 
     // Memanggil Custom Async Function yang mengembalikan Promise
     // Dan menggunakan rantai .then() serta .catch() sesuai kriteria tugas
     fetchGamesCustomAsync()
       .then((data: IGame[]) => {
+        // [OPSI 2]: Menggabungkan 17 game pilihan lokal di daftar atas + katalog dari External API
+        const combinedGames: IGame[] = [
+          ...fallbackGames,
+          ...data.filter(
+            (apiGame) =>
+              !fallbackGames.some(
+                (fg) => fg.title.toLowerCase() === apiGame.title.toLowerCase(),
+              ),
+          ),
+        ];
         // [SYARAT 1]: Data tersimpan dalam State bertipe Interface IGame[]
-        setGamesList(data);
+        setGamesList(combinedGames);
         setIsFromApi(true);
         setLoading(false);
         setRefreshing(false);
       })
       .catch((error: Error) => {
         console.warn("Gagal memuat dari API, menggunakan data lokal:", error.message);
-        // Fallback ke data lokal jika koneksi terputus
+        // Fallback ke 17 game lokal jika koneksi terputus
         setGamesList(fallbackGames);
         setIsFromApi(false);
         setErrorMessage(
-          "Koneksi API eksternal gagal. Menggunakan data cadangan lokal.",
+          "Koneksi API eksternal gagal. Menggunakan data cadangan lokal (17 Game).",
         );
         setLoading(false);
         setRefreshing(false);
@@ -92,12 +104,13 @@ export default function ExploreScreen() {
   };
 
   useEffect(() => {
-    loadGamesData();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadGamesData(false);
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadGamesData();
+    loadGamesData(true);
   };
 
   // Ekstraksi daftar genre dinamis dari data game
@@ -163,7 +176,7 @@ export default function ExploreScreen() {
           <View style={styles.headerTextGroup}>
             <Text style={styles.title}>OmniPlay</Text>
             <Text style={styles.subtitle}>
-              Jelajahi game seru dari External API
+              Jelajahi game pilihan & katalog External API
             </Text>
           </View>
           <ThemeToggle />
@@ -179,8 +192,8 @@ export default function ExploreScreen() {
           />
           <Text style={styles.apiStatusText}>
             {isFromApi
-              ? "External API: FreeToGame (Live Online)"
-              : "Mode Cadangan Lokal"}
+              ? "Katalog: 17 Game Pilihan + External API (Live)"
+              : "Mode Cadangan Lokal (17 Game Pilihan)"}
           </Text>
         </View>
 
@@ -340,6 +353,8 @@ export default function ExploreScreen() {
                         description: game.description,
                         platform: game.platform || "",
                         releaseDate: game.releaseDate || "",
+                        size: game.size || "",
+                        downloads: game.downloads || "",
                       },
                     })
                   }

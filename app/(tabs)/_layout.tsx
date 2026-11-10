@@ -4,7 +4,7 @@ import { useAppTheme } from "../../components/app-theme-context";
 import { useFavorites } from "../../components/favorites-context";
 
 export default function TabLayout() {
-  const { colors, theme } = useAppTheme();
+  const { colors } = useAppTheme();
   const { favorites } = useFavorites();
 
   return (
