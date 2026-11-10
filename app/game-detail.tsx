@@ -68,7 +68,9 @@ export default function GameDetailScreen() {
     id:
       foundGame?.id ??
       params.id ??
-      (title ? `game-${title.toLowerCase().replace(/\s+/g, "-")}` : "game-detail"),
+      (title
+        ? `game-${title.toLowerCase().replace(/\s+/g, "-")}`
+        : "game-detail"),
     title,
     developer,
     genre,
@@ -87,7 +89,10 @@ export default function GameDetailScreen() {
   // Aksi Interaktif 1: Buka Tautan Store / Play
   const handleOpenStore = async () => {
     if (!storeUrl) {
-      Alert.alert("Info", "Tautan unduhan/store untuk game ini belum tersedia.");
+      Alert.alert(
+        "Info",
+        "Tautan unduhan/store untuk game ini belum tersedia.",
+      );
       return;
     }
     try {
@@ -159,11 +164,7 @@ export default function GameDetailScreen() {
                   <Text style={styles.genreBadgeText}>{genre}</Text>
                 </View>
                 <View style={styles.ratingBadge}>
-                  <Ionicons
-                    color={colors.ratingText}
-                    name="star"
-                    size={13}
-                  />
+                  <Ionicons color={colors.ratingText} name="star" size={13} />
                   <Text style={styles.ratingBadgeText}>
                     {rating.toFixed(1)} / 5
                   </Text>

@@ -22,7 +22,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleFavorite = (gameOrTitle: IGame | string) => {
-    const title = typeof gameOrTitle === "string" ? gameOrTitle : gameOrTitle.title;
+    const title =
+      typeof gameOrTitle === "string" ? gameOrTitle : gameOrTitle.title;
     const exists = favorites.includes(title);
 
     if (exists) {

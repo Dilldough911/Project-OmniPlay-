@@ -14,14 +14,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAppTheme, type AppColors } from "../../components/app-theme-context";
+import {
+  useAppTheme,
+  type AppColors,
+} from "../../components/app-theme-context";
 import { useFavorites } from "../../components/favorites-context";
 import { ThemeToggle } from "../../components/theme-toggle";
 import { fallbackGames } from "../../data/games";
-import {
-  fetchGamesCustomAsync,
-  type IGame,
-} from "../../services/gameService";
+import { fetchGamesCustomAsync, type IGame } from "../../services/gameService";
 
 export type SortOption =
   | "default"
@@ -91,7 +91,10 @@ export default function ExploreScreen() {
         setRefreshing(false);
       })
       .catch((error: Error) => {
-        console.warn("Gagal memuat dari API, menggunakan data lokal:", error.message);
+        console.warn(
+          "Gagal memuat dari API, menggunakan data lokal:",
+          error.message,
+        );
         // Fallback ke 17 game lokal jika koneksi terputus
         setGamesList(fallbackGames);
         setIsFromApi(false);
@@ -257,7 +260,9 @@ export default function ExploreScreen() {
                 ]}
               >
                 <Ionicons
-                  color={isSelected ? colors.selectedText : colors.textSecondary}
+                  color={
+                    isSelected ? colors.selectedText : colors.textSecondary
+                  }
                   name={opt.icon}
                   size={14}
                   style={styles.sortIcon}
