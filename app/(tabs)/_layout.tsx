@@ -60,6 +60,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="users"
+        options={{
+          title: "Pengguna",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "people" : "people-outline"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

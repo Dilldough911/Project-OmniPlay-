@@ -84,7 +84,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark")),
   };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useAppTheme() {

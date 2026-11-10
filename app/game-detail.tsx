@@ -40,7 +40,6 @@ export default function GameDetailScreen() {
     downloads?: string;
   }>();
 
-  // Cari data jika ada di fallback data
   const foundGame = fallbackGames.find(
     (g) =>
       (params.id && g.id === params.id) ||
@@ -86,7 +85,6 @@ export default function GameDetailScreen() {
 
   const favorite = isFavorite(title);
 
-  // Aksi Interaktif 1: Buka Tautan Store / Play
   const handleOpenStore = async () => {
     if (!storeUrl) {
       Alert.alert(
@@ -105,7 +103,6 @@ export default function GameDetailScreen() {
     }
   };
 
-  // Aksi Interaktif 2: Bagikan Game (Share API)
   const handleShare = async () => {
     try {
       await Share.share({

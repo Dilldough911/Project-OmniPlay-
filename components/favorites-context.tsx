@@ -14,7 +14,6 @@ const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favoriteItems, setFavoriteItems] = useState<IGame[]>([]);
 
-  // Array of string titles for fast lookup
   const favorites = favoriteItems.map((item) => item.title);
 
   const isFavorite = (title: string) => {
@@ -33,7 +32,6 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       if (typeof gameOrTitle === "object") {
         gameToAdd = gameOrTitle;
       } else {
-        // Fallback pencarian di fallbackGames jika hanya dikirim title string
         const found = fallbackGames.find((g) => g.title === gameOrTitle);
         gameToAdd = found || {
           id: String(Date.now()),

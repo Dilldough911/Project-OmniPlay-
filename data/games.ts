@@ -145,7 +145,8 @@ export const fallbackGames: IGame[] = [
     rating: 4.6,
     image:
       "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/78/e1/77/78e177f1-e174-dfe5-bbd9-f4f2988d9b89/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/512x512bb.jpg",
-    storeUrl: "https://play.google.com/store/apps/details?id=com.mobile.legends",
+    storeUrl:
+      "https://play.google.com/store/apps/details?id=com.mobile.legends",
     description:
       "Bergabunglah dengan teman-temanmu dalam pertarungan MOBA 5v5 seru melawan pemain sungguhan! Pilih hero favoritmu dan bangun tim terbaik untuk menghancurkan tower lawan.",
     platform: "Mobile",

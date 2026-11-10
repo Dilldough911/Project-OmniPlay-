@@ -47,34 +47,26 @@ export default function ExploreScreen() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { theme, colors } = useAppTheme();
 
-  // State Pengambilan Data
   const [gamesList, setGamesList] = useState<IGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFromApi, setIsFromApi] = useState(false);
 
-  // State Filter & Sort
   const [searchText, setSearchText] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<string>("Semua");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
   const styles = createStyles(colors);
 
-  // --------------------------------------------------------------------------
-  // [SYARAT 2 & 3]: Pengambilan Data Menggunakan Custom Async Function & .then()
-  // --------------------------------------------------------------------------
   const loadGamesData = (resetLoading = false) => {
     if (resetLoading) {
       setLoading(true);
       setErrorMessage(null);
     }
 
-    // Memanggil Custom Async Function yang mengembalikan Promise
-    // Dan menggunakan rantai .then() serta .catch() sesuai kriteria tugas
     fetchGamesCustomAsync()
       .then((data: IGame[]) => {
-        // [OPSI 2]: Menggabungkan 17 game pilihan lokal di daftar atas + katalog dari External API
         const combinedGames: IGame[] = [
           ...fallbackGames,
           ...data.filter(
@@ -84,7 +76,6 @@ export default function ExploreScreen() {
               ),
           ),
         ];
-        // [SYARAT 1]: Data tersimpan dalam State bertipe Interface IGame[]
         setGamesList(combinedGames);
         setIsFromApi(true);
         setLoading(false);
@@ -95,7 +86,6 @@ export default function ExploreScreen() {
           "Gagal memuat dari API, menggunakan data lokal:",
           error.message,
         );
-        // Fallback ke 17 game lokal jika koneksi terputus
         setGamesList(fallbackGames);
         setIsFromApi(false);
         setErrorMessage(
@@ -116,13 +106,11 @@ export default function ExploreScreen() {
     loadGamesData(true);
   };
 
-  // Ekstraksi daftar genre dinamis dari data game
   const dynamicGenres = useMemo(() => {
     const unique = Array.from(new Set(gamesList.map((g) => g.genre)));
     return ["Semua", ...unique];
   }, [gamesList]);
 
-  // Filter & Urutkan Data
   const filteredAndSortedGames = useMemo(() => {
     const search = searchText.trim().toLowerCase();
 
