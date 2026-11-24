@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -16,6 +17,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme, type AppColors } from "../../components/app-theme-context";
 import { ThemeToggle } from "../../components/theme-toggle";
+import { useAuth } from "../../context/auth-context";
+import SecureVaultDemo from "../../components/SecureVaultDemo";
 import {
   fetchUsersCustomAsync,
   type IUser,
@@ -46,6 +49,8 @@ function getAvatarColor(id: number): string {
 
 export default function UsersScreen() {
   const { theme, colors } = useAppTheme();
+  const { user, callsign, role, signOut } = useAuth();
+  const [showVaultDemo, setShowVaultDemo] = useState(false);
   const styles = createStyles(colors);
 
   // State Pengambilan Data
@@ -171,6 +176,64 @@ export default function UsersScreen() {
           <Text style={styles.apiStatusText}>
             External API: JSONPlaceholder (Live Online)
           </Text>
+        </View>
+
+        {/* Card Sesi Autentikasi Pengguna (Codelab 3 & 4) */}
+        <View style={styles.sessionCard}>
+          <View style={styles.sessionCardHeader}>
+            <View style={styles.sessionTitleGroup}>
+              <View style={[styles.statusDot, { backgroundColor: "#38BDF8" }]} />
+              <Text style={styles.sessionCardTitle}>Operative Active</Text>
+            </View>
+            <View style={styles.roleBadge}>
+              <Text style={styles.roleBadgeText}>{role.toUpperCase()}</Text>
+            </View>
+          </View>
+
+          <View style={styles.sessionDetails}>
+            <View style={styles.sessionRow}>
+              <Text style={styles.sessionLabel}>CALLSIGN</Text>
+              <Text style={styles.sessionValue}>{callsign || "Hero Operative"}</Text>
+            </View>
+            <View style={styles.sessionRow}>
+              <Text style={styles.sessionLabel}>EMAIL</Text>
+              <Text style={styles.sessionValue}>{user?.email || "Belum Login"}</Text>
+            </View>
+            <View style={styles.sessionRow}>
+              <Text style={styles.sessionLabel}>USER UID</Text>
+              <Text numberOfLines={1} style={[styles.sessionValue, styles.monoText]}>
+                {user?.id || "N/A"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.sessionActions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setShowVaultDemo(!showVaultDemo)}
+              style={styles.vaultToggleButton}
+            >
+              <Ionicons
+                name={showVaultDemo ? "chevron-up" : "lock-closed-outline"}
+                size={16}
+                color="#38BDF8"
+              />
+              <Text style={styles.vaultToggleText}>
+                {showVaultDemo ? "Tutup Brankas" : "Uji Codelab 1 (SecureStore Vault)"}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={signOut}
+              style={styles.signOutButton}
+            >
+              <Ionicons name="log-out-outline" size={16} color="#FFFFFF" />
+              <Text style={styles.signOutButtonText}>Sign Out & Lock HQ</Text>
+            </Pressable>
+          </View>
+
+          {showVaultDemo && <SecureVaultDemo />}
         </View>
 
         {/* Kotak Peringatan Error jika Gagal */}
@@ -638,5 +701,105 @@ const createStyles = (colors: AppColors) =>
       color: colors.selectedText,
       fontSize: 12,
       fontWeight: "600",
+    },
+    sessionCard: {
+      backgroundColor: colors.surface,
+      borderColor: colors.surfaceBorder,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+    },
+    sessionCardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    sessionTitleGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    sessionCardTitle: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    roleBadge: {
+      backgroundColor: "rgba(56, 189, 248, 0.15)",
+      borderColor: "rgba(56, 189, 248, 0.4)",
+      borderWidth: 1,
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    },
+    roleBadgeText: {
+      color: "#38BDF8",
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 0.5,
+    },
+    sessionDetails: {
+      gap: 6,
+      marginBottom: 14,
+    },
+    sessionRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    sessionLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: "700",
+      letterSpacing: 0.5,
+    },
+    sessionValue: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+    monoText: {
+      fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+      maxWidth: "60%",
+    },
+    sessionActions: {
+      flexDirection: "row",
+      gap: 10,
+      alignItems: "center",
+    },
+    vaultToggleButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      backgroundColor: colors.surfaceAlt,
+      borderColor: colors.surfaceBorder,
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+    },
+    vaultToggleText: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    signOutButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      backgroundColor: "#EF4444",
+      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    signOutButtonText: {
+      color: "#FFFFFF",
+      fontSize: 12,
+      fontWeight: "700",
     },
   });
